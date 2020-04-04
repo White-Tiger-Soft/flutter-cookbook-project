@@ -118,11 +118,11 @@ class _DemoItemsDraggableScrollableDetailsPageState
     return Align(
       alignment: Alignment.bottomCenter,
       child: AnimatedSwitcher(
-        child: _buildDraggableScrollableItemDetails(
-          context,
-        ),
+        //AnimatedSwitcher сам выполняет анимацию, если child вдруг изменился
+        child: _buildDraggableScrollableItemDetails(context),
         duration: Duration(milliseconds: 300),
         transitionBuilder: (child, animation) {
+          //Непосрественно виджет "анимации", который выполняет показ нового child'а, и скрытие старого
           return SizeTransition(
             axisAlignment: -1,
             sizeFactor: animation,
@@ -143,6 +143,7 @@ class _DemoItemsDraggableScrollableDetailsPageState
       );
     }
     return LayoutBuilder(
+      //key - ключевой момент для работы AnimatedSwitcher
       key: ValueKey(_selectedItem),
       builder: (context, constraints) {
         var height = defaultPadding +
@@ -150,7 +151,10 @@ class _DemoItemsDraggableScrollableDetailsPageState
                 defaultImageAspectRatio) +
             defaultPadding;
         var initialChildSize = height / constraints.maxHeight;
+        //Отображаем виджет, который позволяет "вытягивать" и "скролить" контент в карточке
         return DraggableScrollableSheet(
+          //Настройки были просчитаны заранее. С учетом того, чтобы при открытии DraggableScrollableSheet
+          //Отображалась картинка из карточки + учет горизонтальных и вертикальных отступов
           initialChildSize: initialChildSize,
           minChildSize: initialChildSize,
           maxChildSize: initialChildSize * 1.5,
@@ -165,6 +169,10 @@ class _DemoItemsDraggableScrollableDetailsPageState
   Widget _buildItemDetails(
       BuildContext context, ScrollController scrollController) {
     return SingleChildScrollView(
+      //Ключевой момент: строим карточку с учетом переданного scrollController от DraggableScrollableSheet
+      //Пока карточка "вытянута" не на максимальный размер, DraggableScrollableSheet сам обрабатывает drag
+      //Как только DraggableScrollableSheet больше не может тянуться выше, то дальше начинает работать обычный SingleChildScrollView
+      //При этом свзь между ними проходит через работу с единым scrollController
       controller: scrollController,
       child: Container(
         color: Colors.blue,
@@ -204,6 +212,7 @@ class _DemoItemsDraggableScrollableDetailsPageState
         ],
         onPressed: (index) {
           setState(() {
+            //изменяем текущий выбранный элемент и обновляем интерфейс
             _selectedItem = _items[index];
           });
         },

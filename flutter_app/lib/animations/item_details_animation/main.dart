@@ -88,9 +88,11 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
     return Align(
       alignment: Alignment.bottomCenter,
       child: AnimatedSwitcher(
+        //AnimatedSwitcher сам выполняет анимацию, если child вдруг изменился
         child: _buildItemDetails(context),
         duration: Duration(milliseconds: 200),
         transitionBuilder: (child, animation) {
+          //Непосрественно виджет "анимации", который выполняет показ нового child'а, и скрытие старого
           return SizeTransition(
             axisAlignment: -1,
             sizeFactor: animation,
@@ -112,6 +114,7 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
     }
     return Dismissible(
       direction: DismissDirection.down,
+      //key - ключевой момент для работы AnimatedSwitcher
       key: ValueKey(_selectedItem),
       child: Container(
         color: Colors.blue,
@@ -156,6 +159,7 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
         ],
         onPressed: (index) {
           setState(() {
+            //изменяем текущий выбранный элемент и обновляем интерфейс
             _selectedItem = _items[index];
           });
         },
