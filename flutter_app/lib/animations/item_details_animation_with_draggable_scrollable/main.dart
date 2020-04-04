@@ -6,26 +6,33 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Demo: Draggable Scrollable Animation',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: DemoItemsDetailsPage(title: 'Flutter Demo Home Page'),
+      home: DemoItemsDraggableScrollableDetailsPage(
+          title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class DemoItemsDetailsPage extends StatefulWidget {
-  DemoItemsDetailsPage({Key key, this.title}) : super(key: key);
+class DemoItemsDraggableScrollableDetailsPage extends StatefulWidget {
+  DemoItemsDraggableScrollableDetailsPage({Key key, this.title})
+      : super(key: key);
 
   final String title;
 
   @override
-  _DemoItemsDetailsPageState createState() => _DemoItemsDetailsPageState();
+  _DemoItemsDraggableScrollableDetailsPageState createState() =>
+      _DemoItemsDraggableScrollableDetailsPageState();
 }
 
-class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
+class _DemoItemsDraggableScrollableDetailsPageState
+    extends State<DemoItemsDraggableScrollableDetailsPage> {
+  final double defaultImageAspectRatio = 2;
+  final double defaultPadding = 9;
+
   List<ItemModel> _items;
   ItemModel _selectedItem;
 
@@ -57,18 +64,41 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
       ItemModel(
         imageUrl:
             "https://natgeo.imgix.net/factsheets/thumbnails/InternationalCheetahDay2.jpg?auto=compress,format&w=1024&h=560&fit=crop",
-        content: "Small test content",
+        content: """
+        Small test content
+        
+        Small test content
+        
+        Small test content
+        
+        Small test content
+        
+        Small test content
+        """,
       ),
       ItemModel(
         imageUrl:
             "https://imagesvc.meredithcorp.io/v3/mm/image?url=https%3A%2F%2Fstatic.onecms.io%2Fwp-content%2Fuploads%2Fsites%2F28%2F2020%2F03%2Fatlanta-zoo-panda-cam-ZOOCAMS0320.jpg",
-        content: "Medium long content Medium long content Medium long content",
+        content: """Medium long content Medium long content Medium long content 
+         Medium long content Medium long content Medium long content
+         
+         Medium long content Medium long content Medium long content
+         
+         Medium long content Medium long content Medium long content
+         """,
       ),
       ItemModel(
         imageUrl:
             "https://cdn.theatlantic.com/thumbor/EX3oAJ4KOKzh-HCi8jiy7qB-HK0=/0x249:3722x2187/960x500/media/img/mt/2018/10/GettyImages_939413302/original.jpg",
         content:
-            "Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content ",
+            """Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content
+            
+            Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content 
+            
+            Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content 
+            
+            Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content Very long content 
+            """,
       ),
     ];
   }
@@ -88,8 +118,10 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
     return Align(
       alignment: Alignment.bottomCenter,
       child: AnimatedSwitcher(
-        child: _buildItemDetails(context),
-        duration: Duration(milliseconds: 200),
+        child: _buildDraggableScrollableItemDetails(
+          context,
+        ),
+        duration: Duration(milliseconds: 300),
         transitionBuilder: (child, animation) {
           return SizeTransition(
             axisAlignment: -1,
@@ -104,26 +136,47 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
     );
   }
 
-  Widget _buildItemDetails(BuildContext context) {
+  Widget _buildDraggableScrollableItemDetails(BuildContext context) {
     if (_selectedItem == null) {
       return SizedBox.shrink(
         key: ValueKey(null),
       );
     }
-    return Dismissible(
-      direction: DismissDirection.down,
+    return LayoutBuilder(
       key: ValueKey(_selectedItem),
+      builder: (context, constraints) {
+        var height = defaultPadding +
+            ((constraints.maxWidth - 2 * defaultPadding) /
+                defaultImageAspectRatio) +
+            defaultPadding;
+        var initialChildSize = height / constraints.maxHeight;
+        return DraggableScrollableSheet(
+          initialChildSize: initialChildSize,
+          minChildSize: initialChildSize,
+          maxChildSize: initialChildSize * 1.5,
+          builder: (context, scrollController) {
+            return _buildItemDetails(context, scrollController);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildItemDetails(
+      BuildContext context, ScrollController scrollController) {
+    return SingleChildScrollView(
+      controller: scrollController,
       child: Container(
         color: Colors.blue,
-        padding: EdgeInsets.all(8),
+        padding: EdgeInsets.all(defaultPadding),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             if (_selectedItem.imageUrl != null)
               Padding(
-                padding: EdgeInsets.only(bottom: 8),
+                padding: EdgeInsets.only(bottom: defaultPadding),
                 child: AspectRatio(
-                  aspectRatio: 2,
+                  aspectRatio: defaultImageAspectRatio,
                   child: Image.network(
                     _selectedItem.imageUrl,
                     fit: BoxFit.cover,
@@ -135,11 +188,6 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
         ),
         width: double.infinity,
       ),
-      onDismissed: (direction) {
-        setState(() {
-          _selectedItem = null;
-        });
-      },
     );
   }
 
