@@ -11,7 +11,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: DemoItemsDetailsPage(title: 'Flutter Demo Home Page'),
+      home: DemoItemsDetailsPage(
+        title: 'Animation Switcher Demo',
+      ),
     );
   }
 }
@@ -26,12 +28,11 @@ class DemoItemsDetailsPage extends StatefulWidget {
 }
 
 class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
+  final ValueNotifier<ItemModel> _selectedItem = ValueNotifier(null);
   List<ItemModel> _items;
-  ItemModel _selectedItem;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     prepareItems();
   }
@@ -87,22 +88,28 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
   Widget _buildAnimatedItemDetails(context) {
     return Align(
       alignment: Alignment.bottomCenter,
-      child: AnimatedSwitcher(
-        //AnimatedSwitcher сам выполняет анимацию, если child вдруг изменился
-        child: _buildItemDetails(context),
-        switchInCurve: Curves.easeInOut,
-        switchOutCurve: Curves.easeInOut,
-        duration: Duration(milliseconds: 500),
-        reverseDuration: Duration(milliseconds: 200),
-        transitionBuilder: (child, animation) {
-          //Непосрественно виджет "анимации", который выполняет показ нового child'а, и скрытие старого
-          return SizeTransition(
-            axisAlignment: -1,
-            sizeFactor: animation,
-            child: FadeTransition(
-              child: child,
-              opacity: animation,
-            ),
+      //Используем ValueListenableBuilder, чтобы при изменении _selectedItem обновлялся не весь экран, а только карточка с информацией о нем
+      child: ValueListenableBuilder(
+        valueListenable: _selectedItem,
+        builder: (context, item, child) {
+          return AnimatedSwitcher(
+            //AnimatedSwitcher сам выполняет анимацию, если child вдруг изменился
+            child: _buildItemDetails(context),
+            switchInCurve: Curves.easeInOut,
+            switchOutCurve: Curves.easeInOut,
+            duration: Duration(milliseconds: 500),
+            reverseDuration: Duration(milliseconds: 200),
+            transitionBuilder: (child, animation) {
+              //Непосрественно виджет "анимации", который выполняет показ нового child'а, и скрытие старого
+              return SizeTransition(
+                axisAlignment: -1,
+                sizeFactor: animation,
+                child: FadeTransition(
+                  child: child,
+                  opacity: animation,
+                ),
+              );
+            },
           );
         },
       ),
@@ -110,7 +117,7 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
   }
 
   Widget _buildItemDetails(BuildContext context) {
-    if (_selectedItem == null) {
+    if (_selectedItem.value == null) {
       return SizedBox.shrink(
         key: ValueKey(null),
       );
@@ -118,33 +125,31 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
     return Dismissible(
       direction: DismissDirection.down,
       //key - ключевой момент для работы AnimatedSwitcher
-      key: ValueKey(_selectedItem),
+      key: ValueKey(_selectedItem.value),
       child: Container(
         color: Colors.blue,
         padding: EdgeInsets.all(8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            if (_selectedItem.imageUrl != null)
+            if (_selectedItem.value.imageUrl != null)
               Padding(
                 padding: EdgeInsets.only(bottom: 8),
                 child: AspectRatio(
                   aspectRatio: 2,
                   child: Image.network(
-                    _selectedItem.imageUrl,
+                    _selectedItem.value.imageUrl,
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
-            Text(_selectedItem.content),
+            Text(_selectedItem.value.content),
           ],
         ),
         width: double.infinity,
       ),
       onDismissed: (direction) {
-        setState(() {
-          _selectedItem = null;
-        });
+        _selectedItem.value = null;
       },
     );
   }
@@ -152,22 +157,26 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
   Widget _buildToggleButtons(BuildContext context) {
     return Align(
       alignment: Alignment.topCenter,
-      child: ToggleButtons(
-        children: <Widget>[
-          for (var itemModel in _items)
-            Text(
-              _items.indexOf(itemModel).toString(),
-              style: TextStyle(color: Colors.white),
-            ),
-        ],
-        onPressed: (index) {
-          setState(() {
-            //изменяем текущий выбранный элемент и обновляем интерфейс
-            _selectedItem = _items[index];
-          });
+      //Используем ValueListenableBuilder, чтобы при изменении _selectedItem обновлялся переключатель
+      child: ValueListenableBuilder(
+        valueListenable: _selectedItem,
+        builder: (context, item, child) {
+          return ToggleButtons(
+            children: <Widget>[
+              for (var itemModel in _items)
+                Text(
+                  _items.indexOf(itemModel).toString(),
+                  style: TextStyle(color: Colors.white),
+                ),
+            ],
+            onPressed: (index) {
+              //изменяем текущий выбранный элемент и обновляем интерфейс
+              _selectedItem.value = _items[index];
+            },
+            isSelected: List<bool>.generate(_items.length,
+                (index) => (_items[index] == _selectedItem.value)),
+          );
         },
-        isSelected: List<bool>.generate(
-            _items.length, (index) => (_items[index] == _selectedItem)),
       ),
     );
   }
