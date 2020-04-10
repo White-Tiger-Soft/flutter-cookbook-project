@@ -120,7 +120,10 @@ class _DemoItemsDraggableScrollableDetailsPageState
       child: AnimatedSwitcher(
         //AnimatedSwitcher сам выполняет анимацию, если child вдруг изменился
         child: _buildDraggableScrollableItemDetails(context),
-        duration: Duration(milliseconds: 300),
+        switchInCurve: Curves.easeInOut,
+        switchOutCurve: Curves.easeInOut,
+        duration: Duration(milliseconds: 500),
+        reverseDuration: Duration(milliseconds: 200),
         transitionBuilder: (child, animation) {
           //Непосрественно виджет "анимации", который выполняет показ нового child'а, и скрытие старого
           return SizeTransition(

@@ -90,7 +90,10 @@ class _DemoItemsDetailsPageState extends State<DemoItemsDetailsPage> {
       child: AnimatedSwitcher(
         //AnimatedSwitcher сам выполняет анимацию, если child вдруг изменился
         child: _buildItemDetails(context),
-        duration: Duration(milliseconds: 200),
+        switchInCurve: Curves.easeInOut,
+        switchOutCurve: Curves.easeInOut,
+        duration: Duration(milliseconds: 500),
+        reverseDuration: Duration(milliseconds: 200),
         transitionBuilder: (child, animation) {
           //Непосрественно виджет "анимации", который выполняет показ нового child'а, и скрытие старого
           return SizeTransition(
