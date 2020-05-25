@@ -6,3 +6,4 @@
 .idea/vcs.xml
 .idea/libraries/Dart_Packages.xml
 flutter_app/lib/video-processing/pubspec.lock
+flutter_app/pubspec.lock
